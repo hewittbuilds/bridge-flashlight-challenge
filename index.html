@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridge & Flashlight Challenge</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#151c31; --text:#f5f7fb; --muted:#b7c0d8;
+    --accent:#ffd34e; --good:#79e09a; --danger:#ff6b6b; --water:#173d69;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--text); background:linear-gradient(#07101f,#11172a);
+  }
+  header{text-align:center;padding:22px 16px 10px}
+  h1{margin:0;font-size:clamp(28px,5vw,48px)}
+  .subtitle{color:var(--muted);font-size:clamp(15px,2vw,19px);margin:8px auto;max-width:850px}
+  .challenge{
+    max-width:900px;margin:10px auto 18px;padding:12px 18px;border-radius:14px;
+    background:#151c31;border:1px solid #34405e;text-align:center;font-size:17px
+  }
+  .challenge strong{color:var(--accent)}
+  .timer-wrap{text-align:center;margin:8px 0 18px}
+  .timer-label{font-size:13px;letter-spacing:.18em;color:var(--muted)}
+  #timer{
+    font-family:"Courier New",monospace;font-weight:800;font-size:clamp(48px,9vw,88px);
+    line-height:1;color:#ff4d4d;text-shadow:0 0 8px #ff000088,0 0 18px #ff000055;
+  }
+  #goal{font-size:15px;color:var(--muted);margin-top:5px}
+  #scene{
+    position:relative;max-width:1050px;height:330px;margin:0 auto;overflow:hidden;
+    border:2px solid #394563;border-radius:18px;background:#10182a;
+  }
+  .sky{position:absolute;inset:0 0 125px;background:linear-gradient(#07101c,#16243b)}
+  .moon{position:absolute;width:56px;height:56px;border-radius:50%;background:#f4edc9;right:9%;top:24px;box-shadow:0 0 25px #fff8}
+  .water{position:absolute;left:0;right:0;bottom:0;height:125px;background:repeating-linear-gradient(0deg,#12375f 0 14px,#174a78 15px 27px)}
+  .bank{position:absolute;bottom:102px;height:72px;width:27%;background:#253d2d;border-top:7px solid #405f43}
+  .bank.left{left:0}.bank.right{right:0}
+  .bridge{
+    position:absolute;left:23%;right:23%;bottom:140px;height:30px;
+    background:repeating-linear-gradient(90deg,#75502e 0 34px,#5d3d25 35px 40px);
+    border:5px solid #342418;border-radius:4px
+  }
+  .bridge:before,.bridge:after{content:"";position:absolute;left:0;right:0;height:3px;background:#b58a59}
+  .bridge:before{top:-14px}.bridge:after{top:36px}
+  .side-label{position:absolute;bottom:72px;font-weight:800;color:#dce4f5;letter-spacing:.08em}
+  .side-label.left{left:7%}.side-label.right{right:7%}
+  .people-zone{position:absolute;left:0;right:0;top:95px;bottom:120px;pointer-events:none}
+  .person{
+    position:absolute;width:72px;height:92px;border:2px solid #7d8cad;border-radius:13px;
+    background:#202b46;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;pointer-events:auto;transition:left .65s ease,transform .15s,border-color .15s,box-shadow .15s;
+    user-select:none
+  }
+  .person:hover{transform:translateY(-3px)}
+  .person.selected{border-color:var(--accent);box-shadow:0 0 0 3px #ffd34e44,0 0 18px #ffd34e44}
+  .icon{font-size:29px}.minutes{font-size:22px;font-weight:900}.minword{font-size:11px;color:var(--muted)}
+  #flashlight{
+    position:absolute;font-size:31px;bottom:178px;transition:left .65s ease;filter:drop-shadow(0 0 7px #ffe88c)
+  }
+  #controls{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;padding:18px}
+  button{
+    border:0;border-radius:12px;padding:13px 25px;font-size:18px;font-weight:800;cursor:pointer
+  }
+  #cross{background:var(--accent);color:#171717}
+  #cross:disabled{opacity:.4;cursor:not-allowed}
+  #reset{background:#35415f;color:white}
+  #status{
+    min-height:58px;max-width:760px;margin:0 auto 18px;padding:13px 18px;text-align:center;
+    border-radius:12px;background:#151c31;color:#e7ebf5;font-size:18px
+  }
+  #moves{
+    max-width:760px;margin:0 auto 30px;padding:0 18px;color:var(--muted);text-align:center;font-size:14px
+  }
+  .win{color:var(--good)!important;font-weight:900}.over{color:#ff9c9c!important;font-weight:800}
+  @media(max-width:650px){
+    #scene{height:300px;border-radius:0;border-left:0;border-right:0}
+    .person{width:58px;height:84px}.bridge{left:22%;right:22%}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌉 Bridge & Flashlight Challenge 🔦</h1>
+  <div class="subtitle">Four people must cross a bridge at night. The bridge holds at most two people, and whoever crosses must carry the flashlight.</div>
+</header>
+
+<div class="challenge">
+  Crossing times: <strong>1, 2, 7, and 10 minutes.</strong>
+  Two people crossing together move at the slower person's speed.
+  <br><strong>Can you get everyone across in 17 minutes or less?</strong>
+</div>
+
+<div class="timer-wrap">
+  <div class="timer-label">ELAPSED TIME</div>
+  <div id="timer">00:00</div>
+  <div id="goal">TARGET: 17:00</div>
+</div>
+
+<div id="scene">
+  <div class="sky"></div><div class="moon"></div>
+  <div class="water"></div>
+  <div class="bank left"></div><div class="bank right"></div>
+  <div class="bridge"></div>
+  <div class="side-label left">START</div><div class="side-label right">FINISH</div>
+  <div class="people-zone" id="peopleZone"></div>
+  <div id="flashlight">🔦</div>
+</div>
+
+<div id="controls">
+  <button id="cross" disabled>CROSS →</button>
+  <button id="reset">RESET</button>
+</div>
+
+<div id="status">Select one or two people on the same side as the flashlight.</div>
+<div id="moves"></div>
+
+<script>
+const times=[1,2,7,10];
+let people=[], flashlightSide='left', elapsed=0, moveCount=0, finished=false;
+const zone=document.getElementById('peopleZone');
+const crossBtn=document.getElementById('cross');
+const status=document.getElementById('status');
+const timer=document.getElementById('timer');
+const flashlight=document.getElementById('flashlight');
+const moves=document.getElementById('moves');
+
+function createPeople(){
+  zone.innerHTML='';
+  people=times.map((time,i)=>{
+    const el=document.createElement('div');
+    el.className='person';
+    el.innerHTML=`<div class="icon">🧍</div><div class="minutes">${time}</div><div class="minword">${time===1?'MINUTE':'MINUTES'}</div>`;
+    el.onclick=()=>toggle(i);
+    zone.appendChild(el);
+    return {time,side:'left',selected:false,el};
+  });
+}
+
+function positions(side){
+  return side==='left' ? [18,88,158,228] : [calcRight(0),calcRight(1),calcRight(2),calcRight(3)];
+}
+function calcRight(i){ return Math.max(0, zone.clientWidth - 72 - (18 + i*70)); }
+
+function layout(){
+  const left=people.filter(p=>p.side==='left');
+  const right=people.filter(p=>p.side==='right');
+  left.forEach((p,i)=>{p.el.style.left=(18+i*70)+'px';});
+  right.forEach((p,i)=>{p.el.style.left=(zone.clientWidth-72-(18+i*70))+'px';});
+  flashlight.style.left = flashlightSide==='left' ? '26%' : '71%';
+}
+
+function toggle(i){
+  if(finished)return;
+  const p=people[i];
+  if(p.side!==flashlightSide){
+    status.textContent='That person is not on the same side as the flashlight.';
+    return;
+  }
+  const selected=people.filter(x=>x.selected);
+  if(!p.selected && selected.length>=2){
+    status.textContent='The bridge can hold only two people.';
+    return;
+  }
+  p.selected=!p.selected;
+  p.el.classList.toggle('selected',p.selected);
+  updateButton();
+}
+
+function updateButton(){
+  const n=people.filter(p=>p.selected && p.side===flashlightSide).length;
+  crossBtn.disabled=finished || n<1 || n>2;
+  crossBtn.textContent=flashlightSide==='left' ? 'CROSS →' : '← CROSS';
+}
+
+crossBtn.onclick=()=>{
+  if(finished)return;
+  const travelers=people.filter(p=>p.selected && p.side===flashlightSide);
+  if(travelers.length<1 || travelers.length>2)return;
+  const cost=Math.max(...travelers.map(p=>p.time));
+  elapsed+=cost; moveCount++;
+  const from=flashlightSide;
+  const to=from==='left'?'right':'left';
+  travelers.forEach(p=>{p.side=to;p.selected=false;p.el.classList.remove('selected');});
+  flashlightSide=to;
+  updateTimer(); layout(); updateButton();
+
+  const names=travelers.map(p=>p.time).join(' & ');
+  status.className='';
+  status.textContent=`${names} minute ${travelers.length===1?'traveler':'travelers'} crossed. That trip took ${cost} minute${cost===1?'':'s'}.`;
+  moves.textContent=`Moves: ${moveCount}`;
+
+  if(people.every(p=>p.side==='right')){
+    finished=true; crossBtn.disabled=true;
+    if(elapsed<=17){
+      status.className='win';
+      status.textContent=`🎉 SUCCESS! Everyone crossed in ${elapsed} minutes. Can you explain why your strategy worked?`;
+    }else{
+      status.className='over';
+      status.textContent=`Everyone made it across in ${elapsed} minutes — but the challenge is 17. RESET and optimize your strategy.`;
+    }
+  } else if(elapsed>17){
+    status.className='over';
+    status.textContent=`You're at ${elapsed} minutes and not everyone is across yet. You can keep experimenting or RESET and try a new strategy.`;
+  }
+};
+
+function updateTimer(){
+  timer.textContent=String(elapsed).padStart(2,'0')+':00';
+}
+
+document.getElementById('reset').onclick=reset;
+function reset(){
+  elapsed=0;moveCount=0;flashlightSide='left';finished=false;
+  createPeople();updateTimer();layout();updateButton();
+  status.className='';status.textContent='Select one or two people on the same side as the flashlight.';
+  moves.textContent='';
+}
+window.addEventListener('resize',layout);
+reset();
+</script>
+</body>
+</html>
