@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bridge & Flashlight Challenge</title>
-<style>
+<!--This begins the style section.  It is an internal stylesheet-->
+  <style>
   :root{
     --bg:#0b1020; --panel:#151c31; --text:#f5f7fb; --muted:#b7c0d8;
     --accent:#ffd34e; --good:#79e09a; --danger:#ff6b6b; --water:#173d69;
@@ -80,6 +81,7 @@
     .person{width:58px;height:84px}.bridge{left:22%;right:22%}
   }
 </style>
+<!--This is where the internal sylesheet ends and the standard HTML structure begins-->
 </head>
 <body>
 <header>
@@ -87,6 +89,8 @@
   <div class="subtitle">Four people must cross a bridge at night. The bridge holds at most two people, and whoever crosses must carry the flashlight.</div>
 </header>
 
+<!--Div stands for Division, which defines parts of your website-->
+  
 <div class="challenge">
   Crossing times: <strong>1, 2, 7, and 10 minutes.</strong>
   Two people crossing together move at the slower person's speed.
@@ -117,6 +121,8 @@
 <div id="status">Select one or two people on the same side as the flashlight.</div>
 <div id="moves"></div>
 
+<!--This is the beginning of the script section.  This website uses JavaScript to define the behaviors of the "game" objects.  Javascript is a language that allows developers to add movement and interactions between objects and user inputs-->
+  
 <script>
 const times=[1,2,7,10];
 let people=[], flashlightSide='left', elapsed=0, moveCount=0, finished=false;
